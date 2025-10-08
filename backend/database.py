@@ -1,11 +1,11 @@
-# Database configuration and models
+# database configuration and models
 from sqlalchemy import create_engine, Column, String, Float, DateTime, Integer, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from datetime import datetime, timezone
 import os
 
-# Database setup
+# database setup
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./swap_platform.db")
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {})
@@ -13,7 +13,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-# Database Models
+# database models
 class ItemModel(Base):
     __tablename__ = "items"
     
@@ -37,7 +37,7 @@ class ItemViewModel(Base):
     user_id = Column(String, nullable=True)
     timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-# Database dependency
+# database dependency
 def get_db():
     db = SessionLocal()
     try:
@@ -45,16 +45,19 @@ def get_db():
     finally:
         db.close()
 
-# Database initialization
+# database initialization
 def init_db():
     """Create all tables"""
     Base.metadata.create_all(bind=engine)
 
 def seed_sample_data():
-    """Seed database with sample data"""
+    """seed database with sample data"""
+
+    # TODO: replace with MVP data
+    
     db = SessionLocal()
     try:
-        # Check if data already exists
+        # check if data already exists
         if db.query(ItemModel).count() > 0:
             print("Sample data already exists, skipping seed")
             return

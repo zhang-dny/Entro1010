@@ -12,6 +12,8 @@ from database import get_db, init_db, seed_sample_data, ItemModel, ItemViewModel
 
 load_dotenv()
 
+# TODO: test backend locally with uvicorn
+
 # init FastAPI
 app = FastAPI(
     title="ENTP 1010 MVP Backend API",
@@ -102,12 +104,12 @@ def convert_db_item_to_pydantic(db_item: ItemModel) -> Item:
 # =============================================== routing ===============================================
 @app.get("/", response_model=HealthResponse)
 async def root():
-    """Health check endpoint"""
+    """health check"""
     return HealthResponse(status="healthy", message="backend healthy")
 
 @app.get("/api/store", response_model=StorePageResponse)
 async def get_store_page(db: Session = Depends(get_db)):
-    """Get store page with all items"""
+    """get store page with all items"""
     try:
         db_items = db.query(ItemModel).all()
         items = [convert_db_item_to_pydantic(item) for item in db_items]
@@ -124,7 +126,7 @@ async def get_store_page(db: Session = Depends(get_db)):
 
 @app.post("/api/item/view", response_model=ItemViewResponse)
 async def view_item(request: ItemViewRequest, db: Session = Depends(get_db)):
-    """Handle item click/view - navigate to item page"""
+    """handle item click/view - navigate to item page"""
     try:
         # Find the item in database
         db_item = db.query(ItemModel).filter(ItemModel.id == request.item_id).first()
@@ -155,7 +157,7 @@ async def view_item(request: ItemViewRequest, db: Session = Depends(get_db)):
 
 @app.get("/api/item/{item_id}", response_model=ItemViewResponse)
 async def get_item(item_id: str, db: Session = Depends(get_db)):
-    """Get specific item details"""
+    """get specific item details"""
     try:
         db_item = db.query(ItemModel).filter(ItemModel.id == item_id).first()
         
@@ -176,7 +178,7 @@ async def get_item(item_id: str, db: Session = Depends(get_db)):
 
 @app.get("/api/item-views")
 async def get_item_views(db: Session = Depends(get_db)):
-    """Get all item view history"""
+    """get all item view history"""
     views = db.query(ItemViewModel).all()
     view_data = [
         {
@@ -191,21 +193,21 @@ async def get_item_views(db: Session = Depends(get_db)):
 
 @app.get("/api/categories")
 async def get_categories(db: Session = Depends(get_db)):
-    """Get all available categories"""
+    """get all available categories"""
     db_items = db.query(ItemModel).all()
     categories = list(set(item.category for item in db_items))
     return {"categories": categories}
 
 @app.get("/api/items/category/{category}")
 async def get_items_by_category(category: str, db: Session = Depends(get_db)):
-    """Get items filtered by category"""
+    """get items filtered by category"""
     db_items = db.query(ItemModel).filter(ItemModel.category.ilike(f"%{category}%")).all()
     items = [convert_db_item_to_pydantic(item) for item in db_items]
     return {"items": items, "total": len(items)}
 
 @app.delete("/api/reset")
 async def reset_all_data(db: Session = Depends(get_db)):
-    """Reset all data (useful for testing)"""
+    """reset all data (useful for testing)"""
     try:
         # Clear all data
         db.query(ItemViewModel).delete()
