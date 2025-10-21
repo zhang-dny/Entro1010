@@ -72,40 +72,7 @@ def seed_sample_data():
                 condition="good",
                 seller_id="user_1",
                 seller_name="Alex Chen",
-                images='["https://example.com/macbook1.jpg"]'
-            ),
-            ItemModel(
-                id="item_2", 
-                title="Calculus Textbook",
-                description="Stewart Calculus 8th Edition, barely used",
-                price=45.00,
-                category="Textbooks",
-                condition="like_new",
-                seller_id="user_2",
-                seller_name="Sarah Johnson",
-                images='["https://example.com/calc_book.jpg"]'
-            ),
-            ItemModel(
-                id="item_3",
-                title="Coffee Maker",
-                description="Keurig K-Elite, works perfectly",
-                price=80.00,
-                category="Appliances",
-                condition="good",
-                seller_id="user_3",
-                seller_name="Mike Rodriguez",
-                images='["https://example.com/coffee_maker.jpg"]'
-            ),
-            ItemModel(
-                id="item_4",
-                title="Bike Lock",
-                description="Heavy duty U-lock, never used",
-                price=25.00,
-                category="Accessories",
-                condition="new",
-                seller_id="user_1",
-                seller_name="Alex Chen",
-                images='["https://example.com/bike_lock.jpg"]'
+                images='["/macbooksampleimage.jpg"]'
             )
         ]
         
