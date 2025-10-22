@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
@@ -9,10 +9,16 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 import json
 from database import get_db, init_db, seed_sample_data, ItemModel, ItemViewModel
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
 
 # TODO: test backend locally with uvicorn
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 # init FastAPI
 app = FastAPI(
@@ -20,6 +26,10 @@ app = FastAPI(
     description="Uvicorn/FastAPI backend for ENTP 1010 MVP",
     version="0.0.1"
 )
+
+# Add rate limiter to app
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 """
 CORS Middleware Config:
@@ -52,6 +62,8 @@ class Item(BaseModel):
     seller_id: str
     seller_name: str
     images: Optional[List[str]] = []
+    tags: Optional[List[str]] = []
+    distance: float
     created_at: str
     updated_at: str
     
@@ -97,6 +109,8 @@ def convert_db_item_to_pydantic(db_item: ItemModel) -> Item:
         seller_id=db_item.seller_id,
         seller_name=db_item.seller_name,
         images=json.loads(db_item.images) if db_item.images else [],
+        tags=json.loads(db_item.tags) if db_item.tags else [],
+        distance=db_item.distance,
         created_at=db_item.created_at.isoformat(),
         updated_at=db_item.updated_at.isoformat()
     )
@@ -108,7 +122,8 @@ async def root():
     return HealthResponse(status="healthy", message="backend healthy")
 
 @app.get("/api/store", response_model=StorePageResponse)
-async def get_store_page(db: Session = Depends(get_db)):
+@limiter.limit("30/minute")  # Allow 30 requests per minute
+async def get_store_page(request: Request, db: Session = Depends(get_db)):
     """get store page with all items"""
     try:
         db_items = db.query(ItemModel).all()
@@ -125,19 +140,20 @@ async def get_store_page(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/item/view", response_model=ItemViewResponse)
-async def view_item(request: ItemViewRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")  # Allow 10 view tracking requests per minute
+async def view_item(request: Request, view_request: ItemViewRequest, db: Session = Depends(get_db)):
     """handle item click/view - navigate to item page"""
     try:
         # Find the item in database
-        db_item = db.query(ItemModel).filter(ItemModel.id == request.item_id).first()
+        db_item = db.query(ItemModel).filter(ItemModel.id == view_request.item_id).first()
         
         if not db_item:
             raise HTTPException(status_code=404, detail="Item not found")
         
         # Track the view in database
         view_record = ItemViewModel(
-            item_id=request.item_id,
-            user_id=request.user_id,
+            item_id=view_request.item_id,
+            user_id=view_request.user_id,
             timestamp=datetime.now(timezone.utc)
         )
         db.add(view_record)
@@ -156,7 +172,8 @@ async def view_item(request: ItemViewRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/item/{item_id}", response_model=ItemViewResponse)
-async def get_item(item_id: str, db: Session = Depends(get_db)):
+@limiter.limit("60/minute")  # Allow 60 item detail requests per minute
+async def get_item(request: Request, item_id: str, db: Session = Depends(get_db)):
     """get specific item details"""
     try:
         db_item = db.query(ItemModel).filter(ItemModel.id == item_id).first()

@@ -9,6 +9,8 @@ export interface Item {
   seller_id: string;
   seller_name: string;
   images: string[];
+  tags: string[];
+  distance: number;
   created_at: string;
   updated_at: string;
 }

@@ -16,8 +16,12 @@ export function useStorePage() {
   return useQuery({
     queryKey: queryKeys.store,
     queryFn: ApiService.getStorePage,
-    staleTime: 30 * 1000, // 30 seconds
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (keep in cache longer)
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnMount: false, // Don't refetch on component mount if data is fresh
+    refetchOnReconnect: false, // Don't refetch on network reconnect
+    retry: 2, // Reduce retry attempts
   });
 }
 
@@ -27,6 +31,12 @@ export function useItem(itemId: string) {
     queryKey: queryKeys.item(itemId),
     queryFn: () => ApiService.getItem(itemId),
     enabled: !!itemId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (keep in cache longer)
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnMount: false, // Don't refetch on component mount if data is fresh
+    refetchOnReconnect: false, // Don't refetch on network reconnect
+    retry: 2, // Reduce retry attempts
   });
 }
 
@@ -35,8 +45,12 @@ export function useCategories() {
   return useQuery({
     queryKey: queryKeys.categories,
     queryFn: ApiService.getCategories,
-    staleTime: 60 * 1000, // 1 minute
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (keep in cache longer)
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnMount: false, // Don't refetch on component mount if data is fresh
+    refetchOnReconnect: false, // Don't refetch on network reconnect
+    retry: 2, // Reduce retry attempts
   });
 }
 
@@ -46,6 +60,12 @@ export function useItemsByCategory(category: string) {
     queryKey: queryKeys.itemsByCategory(category),
     queryFn: () => ApiService.getItemsByCategory(category),
     enabled: !!category,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (keep in cache longer)
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnMount: false, // Don't refetch on component mount if data is fresh
+    refetchOnReconnect: false, // Don't refetch on network reconnect
+    retry: 2, // Reduce retry attempts
   });
 }
 
@@ -54,8 +74,9 @@ export function useHealthCheck() {
   return useQuery({
     queryKey: queryKeys.health,
     queryFn: ApiService.healthCheck,
-    refetchInterval: 30 * 1000, // 30 seconds
-    retry: false,
+    refetchInterval: 2 * 60 * 1000, // 2 minutes (reduced from 30 seconds)
+    retry: 1, // Reduce retry attempts
+    staleTime: 1 * 60 * 1000, // 1 minute stale time
   });
 }
 

@@ -5,13 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Heart, MapPin, Clock, User, AlertCircle, Loader2 } from "lucide-react";
 import { useItem, useTrackItemView } from "@/hooks/useApi";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import ChatModal from "@/components/ChatModal";
 
 const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data, isLoading, error } = useItem(id || '');
   const trackItemView = useTrackItemView();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Track view when component mounts
   useEffect(() => {
@@ -63,6 +65,13 @@ const ItemDetail = () => {
 
   // Helper functions
   const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+  
+  const formatDistance = (distance: number) => {
+    if (distance < 1) {
+      return `${Math.round(distance * 10) / 10} miles away`;
+    }
+    return `${Math.round(distance * 10) / 10} miles away`;
+  };
   
   const getTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -197,21 +206,37 @@ const ItemDetail = () => {
                       Seller: {item.seller_name}
                     </span>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {formatDistance(item.distance)}
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Action buttons */}
             <div className="flex gap-4">
-              <Button size="lg" className="flex-1">
+              <Button size="lg" className="flex-1" onClick={() => setIsChatOpen(true)}>
                 Contact Seller
               </Button>
               <Button size="lg" variant="outline" className="flex-1">
                 Make Offer
               </Button>
+              <Button size="lg" variant="outline" className="flex-1">
+                Request to Rent
+              </Button>
             </div>
           </div>
         </div>
+        
+        {/* Chat Modal */}
+        <ChatModal 
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          sellerName={item.seller_name}
+        />
       </div>
     </div>
   );

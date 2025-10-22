@@ -35,6 +35,14 @@ const ItemCard = ({ item }: ItemCardProps) => {
     return `$${price.toFixed(2)}`;
   };
 
+  // Helper function to format distance
+  const formatDistance = (distance: number) => {
+    if (distance < 1) {
+      return `${Math.round(distance * 10) / 10} mi`;
+    }
+    return `${Math.round(distance * 10) / 10} mi`;
+  };
+
   // Helper function to get first image or placeholder
   const getImageUrl = () => {
     if (item.images && item.images.length > 0) {
@@ -91,7 +99,12 @@ const ItemCard = ({ item }: ItemCardProps) => {
           </h3>
           <div className="flex items-center justify-between mb-2">
             <span className="text-2xl font-bold text-primary">{formatPrice(item.price)}</span>
-            <Badge variant="outline" className="capitalize">{item.condition}</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="capitalize">{item.condition}</Badge>
+              <Badge variant="secondary" className="text-xs">
+                {formatDistance(item.distance)}
+              </Badge>
+            </div>
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
@@ -103,6 +116,25 @@ const ItemCard = ({ item }: ItemCardProps) => {
               {getTimeAgo(item.created_at)}
             </div>
           </div>
+          
+          {/* Tags */}
+          {item.tags && item.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-3">
+              {item.tags.slice(0, 3).map((tag, index) => (
+                <span 
+                  key={index}
+                  className="bg-muted text-muted-foreground rounded-full px-2 py-1 text-xs"
+                >
+                  {tag}
+                </span>
+              ))}
+              {item.tags.length > 3 && (
+                <span className="bg-muted text-muted-foreground rounded-full px-2 py-1 text-xs">
+                  +{item.tags.length - 3} more
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
